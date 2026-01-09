@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quarchpy-binaries"
+version = "0.0.1"
+description = "Binary dependencies for QuarchPy (JRE and QPS)"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "Proprietary"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.urls]
+"Homepage" = "https://github.com/QuarchTechnologyLtd/quarchpy-binaries"
+
+[tool.setuptools.packages.find]
+where = ["src"]

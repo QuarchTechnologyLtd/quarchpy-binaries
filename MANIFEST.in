@@ -1,0 +1,2 @@
+graft src/quarchpy_binaries/dependencies
+global-exclude *.py[cod]
