@@ -49,6 +49,7 @@ jobs:
       - name: Download JRE Bundle
         env:
           GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        shell: bash
         run: |
           mkdir -p src/quarchpy_binaries/dependencies/jre
           
@@ -64,6 +65,7 @@ jobs:
       - name: Download QPS Binaries
         env:
           GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        shell: bash
         run: |
           mkdir -p src/quarchpy_binaries/dependencies/qps
           
