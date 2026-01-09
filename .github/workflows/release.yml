@@ -31,7 +31,7 @@ jobs:
             qps_zip: qps-release-mac-intel.zip
           - os: macos-14
             os_short: mac-arm
-            jre_suffix: mac_aarch64_jdk_jre
+            jre_suffix: mac_arm64_jdk_jre
             qps_zip: qps-release-macos-arm.zip
 
     steps:
