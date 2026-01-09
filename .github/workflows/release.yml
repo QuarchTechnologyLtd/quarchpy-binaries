@@ -1,0 +1,109 @@
+name: Build QuarchPy Binaries
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  id-token: write # Required for PyPI Trusted Publishing
+
+jobs:
+  package-quarchpy:
+    name: Package QuarchPy (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            os_short: win
+            jre_suffix: win_amd64_jdk_jre
+            qps_zip: qps-release-windows.zip
+          - os: ubuntu-latest
+            os_short: lin
+            jre_suffix: lin_amd64_jdk_jre
+            qps_zip: qps-release-debian.zip
+          - os: macos-15-intel
+            os_short: mac
+            jre_suffix: mac_amd64_jdk_jre
+            qps_zip: qps-release-mac-intel.zip
+          - os: macos-14
+            os_short: mac-arm
+            jre_suffix: mac_aarch64_jdk_jre
+            qps_zip: qps-release-macos-arm.zip
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      #
+      # 1. Download JREs from QuarchTechnologyLtd/JRE-Tool (LATEST Release)
+      #
+      - name: Download JRE Bundle
+        env:
+          GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        run: |
+          mkdir -p dependencies/jre
+          
+          echo "Downloading latest JRE for ${{ matrix.os }}..."
+          gh release download \
+            --repo QuarchTechnologyLtd/JRE-Tool \
+            --pattern "${{ matrix.jre_suffix }}.zip" \
+            --dir dependencies/jre
+
+      #
+      # 2. Download QPS from QuarchTechnologyLtd/QPS (LATEST Release)
+      #
+      - name: Download QPS Binaries
+        env:
+          GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        run: |
+          mkdir -p dependencies/qps
+          
+          echo "Downloading latest QPS binaries for ${{ matrix.os }}..."
+          gh release download \
+            --repo QuarchTechnologyLtd/QPS \
+            --pattern "${{ matrix.qps_zip }}" \
+            --dir dependencies/qps
+
+      #
+      # 3. Extract JRE
+      #
+      - name: Extract JRE
+        shell: bash
+        run: |
+          cd dependencies/jre
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            unzip -q "${{ matrix.jre_suffix }}.zip"
+          else
+            unzip -q "${{ matrix.jre_suffix }}.zip"
+          fi
+          echo "JRE Extracted to dependencies/jre/${{ matrix.jre_suffix }}"
+
+      #
+      # 4. Build Package (Wheel only)
+      #
+      - name: Install Build Tools
+        run: pip install build
+
+      - name: Build Wheel
+        # We build only the wheel to ensure we get platform-specific artifacts
+        # and don't conflict on uploading the same sdist multiple times.
+        run: python -m build --wheel
+
+      #
+      # 5. Upload to PyPI
+      #
+      - name: Publish to PyPI
+        # Only publish when a tag is pushed (prevents accidental uploads on manual dispatch)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
