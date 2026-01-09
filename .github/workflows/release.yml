@@ -69,21 +69,21 @@ jobs:
             --pattern "${{ matrix.jre_suffix }}.zip" \
             --dir src/quarchpy_binaries/dependencies/jre
 
-      #
-      # 2. Download QPS
-      #
-      - name: Download QPS Binaries
-        env:
-          GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
-        shell: bash
-        run: |
-          mkdir -p src/quarchpy_binaries/dependencies/qps
+      # #
+      # # 2. Download QPS
+      # #
+      # - name: Download QPS Binaries
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+      #   shell: bash
+      #   run: |
+      #     mkdir -p src/quarchpy_binaries/dependencies/qps
           
-          echo "Downloading latest QPS binaries for ${{ matrix.os }}..."
-          gh release download \
-            --repo QuarchTechnologyLtd/QPS \
-            --pattern "${{ matrix.qps_zip }}" \
-            --dir src/quarchpy_binaries/dependencies/qps
+      #     echo "Downloading latest QPS binaries for ${{ matrix.os }}..."
+      #     gh release download \
+      #       --repo QuarchTechnologyLtd/QPS \
+      #       --pattern "${{ matrix.qps_zip }}" \
+      #       --dir src/quarchpy_binaries/dependencies/qps
 
       #
       # 3. Extract JRE
@@ -96,16 +96,16 @@ jobs:
           rm "${{ matrix.jre_suffix }}.zip"
           echo "JRE Extracted to src/quarchpy_binaries/dependencies/jre/${{ matrix.jre_suffix }}"
 
-      #
-      # 4. Extract QPS
-      #
-      - name: Extract QPS
-        shell: bash
-        run: |
-          cd src/quarchpy_binaries/dependencies/qps
-          unzip -q "${{ matrix.qps_zip }}"
-          rm "${{ matrix.qps_zip }}"
-          echo "QPS Extracted to src/quarchpy_binaries/dependencies/qps"
+      # #
+      # # 4. Extract QPS
+      # #
+      # - name: Extract QPS
+      #   shell: bash
+      #   run: |
+      #     cd src/quarchpy_binaries/dependencies/qps
+      #     unzip -q "${{ matrix.qps_zip }}"
+      #     rm "${{ matrix.qps_zip }}"
+      #     echo "QPS Extracted to src/quarchpy_binaries/dependencies/qps"
 
       #
       # 5. Build Package (Wheel only)
