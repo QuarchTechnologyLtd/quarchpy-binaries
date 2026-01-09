@@ -21,18 +21,28 @@ jobs:
             os_short: win
             jre_suffix: win_amd64_jdk_jre
             qps_zip: qps-release-windows.zip
+            plat_name: win_amd64
           - os: ubuntu-latest
             os_short: lin
             jre_suffix: lin_amd64_jdk_jre
             qps_zip: qps-release-debian.zip
+            plat_name: manylinux2014_x86_64
+          #
+          # MAC INTEL BUILD
+          #
           - os: macos-15-intel
             os_short: mac
             jre_suffix: mac_amd64_jdk_jre
             qps_zip: qps-release-mac-intel.zip
-          - os: macos-14
+            plat_name: macosx_10_9_x86_64
+          #
+          # MAC ARM BUILD
+          #
+          - os: macos-15
             os_short: mac-arm
             jre_suffix: mac_arm64_jdk_jre
             qps_zip: qps-release-macos-arm.zip
+            plat_name: macosx_11_0_arm64
 
     steps:
       - name: Checkout repository
@@ -44,7 +54,7 @@ jobs:
           python-version: '3.x'
 
       #
-      # 1. Download JREs from QuarchTechnologyLtd/JRE-Tool (LATEST Release)
+      # 1. Download JREs
       #
       - name: Download JRE Bundle
         env:
@@ -59,21 +69,21 @@ jobs:
             --pattern "${{ matrix.jre_suffix }}.zip" \
             --dir src/quarchpy_binaries/dependencies/jre
 
-#      #
-#      # 2. Download QPS from QuarchTechnologyLtd/QPS (LATEST Release)
-#      #
-#      - name: Download QPS Binaries
-#        env:
-#          GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
-#        shell: bash
-#        run: |
-#          mkdir -p src/quarchpy_binaries/dependencies/qps
-#
-#          echo "Downloading latest QPS binaries for ${{ matrix.os }}..."
-#          gh release download \
-#            --repo QuarchTechnologyLtd/QPS \
-#            --pattern "${{ matrix.qps_zip }}" \
-#            --dir src/quarchpy_binaries/dependencies/qps
+      #
+      # 2. Download QPS
+      #
+      - name: Download QPS Binaries
+        env:
+          GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        shell: bash
+        run: |
+          mkdir -p src/quarchpy_binaries/dependencies/qps
+          
+          echo "Downloading latest QPS binaries for ${{ matrix.os }}..."
+          gh release download \
+            --repo QuarchTechnologyLtd/QPS \
+            --pattern "${{ matrix.qps_zip }}" \
+            --dir src/quarchpy_binaries/dependencies/qps
 
       #
       # 3. Extract JRE
@@ -86,31 +96,31 @@ jobs:
           rm "${{ matrix.jre_suffix }}.zip"
           echo "JRE Extracted to src/quarchpy_binaries/dependencies/jre/${{ matrix.jre_suffix }}"
 
-#      #
-#      # 4. Extract QPS
-#      #
-#      - name: Extract QPS
-#        shell: bash
-#        run: |
-#          cd src/quarchpy_binaries/dependencies/qps
-#          unzip -q "${{ matrix.qps_zip }}"
-#          rm "${{ matrix.qps_zip }}"
-#          echo "QPS Extracted to src/quarchpy_binaries/dependencies/qps"
+      #
+      # 4. Extract QPS
+      #
+      - name: Extract QPS
+        shell: bash
+        run: |
+          cd src/quarchpy_binaries/dependencies/qps
+          unzip -q "${{ matrix.qps_zip }}"
+          rm "${{ matrix.qps_zip }}"
+          echo "QPS Extracted to src/quarchpy_binaries/dependencies/qps"
 
       #
       # 5. Build Package (Wheel only)
       #
       - name: Install Build Tools
-        run: pip install build
+        run: pip install setuptools wheel
 
       - name: Build Wheel
-        # We build only the wheel to ensure we get platform-specific artifacts
-        # and don't conflict on uploading the same sdist multiple times.
-        run: python -m build --wheel
+        # We explicitly set the platform name to match the binaries we downloaded.
+        # This fixes the PyPI "linux_x86_64" error by forcing "manylinux2014_x86_64".
+        run: python setup.py bdist_wheel --plat-name ${{ matrix.plat_name }}
 
       #
       # 6. Upload Artifacts (Instead of Publishing directly)
-      #    This sends the wheels to GitHub storage so the 'publish' job can see them.
+      #
       - name: Upload Wheel
         uses: actions/upload-artifact@v4
         with:
@@ -122,8 +132,8 @@ jobs:
   #
   publish:
     name: Publish to PyPI
-    needs: package-quarchpy  # Wait for all builds to finish
-    runs-on: ubuntu-latest   # Linux runner required for pypi-publish action
+    needs: package-quarchpy
+    runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Download all wheels
