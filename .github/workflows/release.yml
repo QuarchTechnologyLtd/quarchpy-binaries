@@ -109,11 +109,32 @@ jobs:
         run: python -m build --wheel
 
       #
-      # 6. Upload to PyPI
-      #
+      # 6. Upload Artifacts (Instead of Publishing directly)
+      #    This sends the wheels to GitHub storage so the 'publish' job can see them.
+      - name: Upload Wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os_short }}
+          path: dist/*.whl
+
+  #
+  # Separate Publish Job (Must run on Linux)
+  #
+  publish:
+    name: Publish to PyPI
+    needs: package-quarchpy  # Wait for all builds to finish
+    runs-on: ubuntu-latest   # Linux runner required for pypi-publish action
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download all wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+
       - name: Publish to PyPI
-        # Only publish when a tag is pushed (prevents accidental uploads on manual dispatch)
-        if: startsWith(github.ref, 'refs/tags/')
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_TOKEN }}
+          packages_dir: dist
