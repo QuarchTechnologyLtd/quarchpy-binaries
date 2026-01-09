@@ -50,6 +50,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: |
+          mkdir -p src/quarchpy_binaries/dependencies/jre
           
           echo "Downloading latest JRE for ${{ matrix.os }}..."
           gh release download \
@@ -64,6 +65,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: |
+          mkdir -p src/quarchpy_binaries/dependencies/qps
           
           echo "Downloading latest QPS binaries for ${{ matrix.os }}..."
           gh release download \
@@ -77,16 +79,24 @@ jobs:
       - name: Extract JRE
         shell: bash
         run: |
-          cd dependencies/jre
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            unzip -q "${{ matrix.jre_suffix }}.zip"
-          else
-            unzip -q "${{ matrix.jre_suffix }}.zip"
-          fi
-          echo "JRE Extracted to dependencies/jre/${{ matrix.jre_suffix }}"
+          cd src/quarchpy_binaries/dependencies/jre
+          unzip -q "${{ matrix.jre_suffix }}.zip"
+          rm "${{ matrix.jre_suffix }}.zip"
+          echo "JRE Extracted to src/quarchpy_binaries/dependencies/jre/${{ matrix.jre_suffix }}"
 
       #
-      # 4. Build Package (Wheel only)
+      # 4. Extract QPS
+      #
+      - name: Extract QPS
+        shell: bash
+        run: |
+          cd src/quarchpy_binaries/dependencies/qps
+          unzip -q "${{ matrix.qps_zip }}"
+          rm "${{ matrix.qps_zip }}"
+          echo "QPS Extracted to src/quarchpy_binaries/dependencies/qps"
+
+      #
+      # 5. Build Package (Wheel only)
       #
       - name: Install Build Tools
         run: pip install build
@@ -97,7 +107,7 @@ jobs:
         run: python -m build --wheel
 
       #
-      # 5. Upload to PyPI
+      # 6. Upload to PyPI
       #
       - name: Publish to PyPI
         # Only publish when a tag is pushed (prevents accidental uploads on manual dispatch)
