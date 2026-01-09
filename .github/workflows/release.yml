@@ -50,13 +50,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: |
-          mkdir -p dependencies/jre
           
           echo "Downloading latest JRE for ${{ matrix.os }}..."
           gh release download \
             --repo QuarchTechnologyLtd/JRE-Tool \
             --pattern "${{ matrix.jre_suffix }}.zip" \
-            --dir dependencies/jre
+            --dir src/quarchpy_binaries/dependencies/jre
 
       #
       # 2. Download QPS from QuarchTechnologyLtd/QPS (LATEST Release)
@@ -65,13 +64,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: |
-          mkdir -p dependencies/qps
           
           echo "Downloading latest QPS binaries for ${{ matrix.os }}..."
           gh release download \
             --repo QuarchTechnologyLtd/QPS \
             --pattern "${{ matrix.qps_zip }}" \
-            --dir dependencies/qps
+            --dir src/quarchpy_binaries/dependencies/qps
 
       #
       # 3. Extract JRE
