@@ -28,12 +28,12 @@ def get_jre_home():
     return jre_root
 
 
-def get_qps_path():
-    """Return the absolute path to the QPS jar or executable."""
-    # Adjust 'QPS.jar' to the actual entry point filename
-    qps_root = os.path.join(get_base_path(), 'dependencies', 'qps')
-
-    if not os.path.exists(qps_root):
-        raise FileNotFoundError(f"QPS directory not found at {qps_root}")
-
-    return qps_root
+# def get_qps_path():
+#     """Return the absolute path to the QPS jar or executable."""
+#     # Adjust 'QPS.jar' to the actual entry point filename
+#     qps_root = os.path.join(get_base_path(), 'dependencies', 'qps')
+#
+#     if not os.path.exists(qps_root):
+#         raise FileNotFoundError(f"QPS directory not found at {qps_root}")
+#
+#     return qps_root
