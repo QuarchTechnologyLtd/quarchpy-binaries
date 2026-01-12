@@ -114,13 +114,13 @@ jobs:
         run: pip install setuptools wheel
 
       - name: Build Wheel
-        # We keep your matrix.plat_name (OS specific) 
-        # But we force the python tag to 'py3' and the ABI tag to 'none'
+        # We use environment variables to force the tags 
+        # because the bdist_wheel CLI doesn't support --abi-tag directly.
         run: |
-          python setup.py bdist_wheel \
-            --plat-name ${{ matrix.plat_name }} \
-            --python-tag py3 \
-            --abi-tag none
+          python setup.py bdist_wheel --plat-name ${{ matrix.plat_name }}
+        env:
+          WHEEL_PYTHON_TAG: py3
+          WHEEL_ABI_TAG: none
 
       #
       # 6. Upload Artifacts (Instead of Publishing directly)
