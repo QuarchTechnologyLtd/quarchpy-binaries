@@ -114,13 +114,9 @@ jobs:
         run: pip install setuptools wheel
 
       - name: Build Wheel
-        # We use environment variables to force the tags 
-        # because the bdist_wheel CLI doesn't support --abi-tag directly.
-        run: |
-          python setup.py bdist_wheel --plat-name ${{ matrix.plat_name }}
-        env:
-          WHEEL_PYTHON_TAG: py3
-          WHEEL_ABI_TAG: none
+        # This will now correctly produce: 
+        # quarchpy_binaries-0.0.3-py3-none-[matrix.plat_name].whl
+        run: python setup.py bdist_wheel --plat-name ${{ matrix.plat_name }}
 
       #
       # 6. Upload Artifacts (Instead of Publishing directly)
