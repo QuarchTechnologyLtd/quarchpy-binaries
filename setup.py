@@ -1,42 +1,47 @@
 import os
-from setuptools import setup, Distribution
+from setuptools import setup, find_packages, Distribution
 
+try:
+    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+    class bdist_wheel(_bdist_wheel):
+        def finalize_options(self):
+            _bdist_wheel.finalize_options(self)
+            self.universal = False
+        def get_tag(self):
+            # This forces the 'py3-none' part while keeping the OS platform
+            python, abi, plat = _bdist_wheel.get_tag(self)
+            return "py3", "none", plat
+except ImportError:
+    bdist_wheel = None
 
 class BinaryDistribution(Distribution):
-    """Distribution which always forces a binary package with platform name"""
-
+    """Force a binary package with platform name"""
     def has_ext_modules(foo):
         return True
 
-
 def find_package_data():
-    """
-    Recursively include all files in the dependencies directory.
-    This ensures the JRE and QPS binaries downloaded during CI are included.
-    """
-    files = []
-    # relative to the package inside src/quarchpy_binaries/
     base_dir = os.path.join('src', 'quarchpy_binaries', 'dependencies')
-
     if not os.path.exists(base_dir):
-        # Fallback for local dev if dependencies aren't downloaded yet
-        return {'quarchpy_binaries': []}
+        return []
 
-    # We want the pattern to be like 'dependencies/jre/bin/java'
-    # relative to the package root 'quarchpy_binaries'
     data_files = []
     for root, dirs, filenames in os.walk(base_dir):
         for filename in filenames:
             abs_path = os.path.join(root, filename)
-            # Make path relative to src/quarchpy_binaries
+            # Path relative to the package: quarchpy_binaries/
             rel_path = os.path.relpath(abs_path, os.path.join('src', 'quarchpy_binaries'))
             data_files.append(rel_path)
-
-    return {'quarchpy_binaries': data_files}
-
+    return data_files
 
 setup(
+    # Name and version must be here to ensure they aren't 'UNKNOWN' 
+    # during the bdist_wheel phase if pyproject.toml isn't parsed early enough.
+    name="quarchpy-binaries",
+    version="0.0.3",
+    package_dir={"": "src"},
+    packages=find_packages(where="src"),
     distclass=BinaryDistribution,
-    package_data=find_package_data(),
+    package_data={'quarchpy_binaries': find_package_data()},
     include_package_data=True,
+    cmdclass={'bdist_wheel': bdist_wheel} if bdist_wheel else {},
 )
