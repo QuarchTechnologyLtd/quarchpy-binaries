@@ -37,7 +37,7 @@ setup(
     # Name and version must be here to ensure they aren't 'UNKNOWN' 
     # during the bdist_wheel phase if pyproject.toml isn't parsed early enough.
     name="quarchpy-binaries",
-    version="0.0.3",
+    version="0.0.4",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     distclass=BinaryDistribution,
