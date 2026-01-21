@@ -17,18 +17,32 @@ jobs:
     strategy:
       matrix:
         include:
+          #
+          # Windows
+          #
           - os: windows-latest
             os_short: win
             jre_suffix: win_amd64_jdk_jre
             qps_zip: qps-release-windows.zip
             plat_name: win_amd64
+          #
+          # Linux x86
+          #
           - os: ubuntu-latest
             os_short: lin
             jre_suffix: lin_amd64_jdk_jre
             qps_zip: qps-release-debian.zip
             plat_name: manylinux2014_x86_64
           #
-          # MAC INTEL BUILD
+          # Linux ARM
+          #
+          - os: ubuntu-latest
+            os_short: lin-arm
+            jre_suffix: lin_arm64_jdk_jre
+            qps_zip: qps-release-debian.zip
+            plat_name: manylinux2014_aarch64
+          #
+          # macOS Intel
           #
           - os: macos-15-intel
             os_short: mac
@@ -36,7 +50,7 @@ jobs:
             qps_zip: qps-release-mac-intel.zip
             plat_name: macosx_10_9_x86_64
           #
-          # MAC ARM BUILD
+          # macOS ARM
           #
           - os: macos-15
             os_short: mac-arm
